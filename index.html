@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vitalis — Patient Risk Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">V</span>
+      <div class="brand-text">
+        <span class="brand-name">Vitalis</span>
+        <span class="brand-sub">Risk Analysis System</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-view="assess">New Assessment</button>
+      <button class="nav-item" data-view="records">Patient Records</button>
+      <button class="nav-item" data-view="about">Model &amp; Methodology</button>
+    </nav>
+
+    <div class="sidebar-stats">
+      <p class="sidebar-stats-label">Records logged</p>
+      <p class="sidebar-stats-value" id="sidebar-total">0</p>
+      <div class="sidebar-bar">
+        <div class="sidebar-bar-seg low" id="bar-low"></div>
+        <div class="sidebar-bar-seg medium" id="bar-medium"></div>
+        <div class="sidebar-bar-seg high" id="bar-high"></div>
+      </div>
+      <div class="sidebar-legend">
+        <span><i class="dot low"></i>Low</span>
+        <span><i class="dot medium"></i>Medium</span>
+        <span><i class="dot high"></i>High</span>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      Synthetic demo model. Not a substitute for professional medical diagnosis.
+    </p>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- VIEW: Assessment -->
+    <section class="view active" id="view-assess">
+      <header class="view-header">
+        <h1>Patient Risk Assessment</h1>
+        <p>Enter vitals and lifestyle factors to generate an AI-based composite risk profile.</p>
+      </header>
+
+      <div class="assess-grid">
+        <form class="card form-card" id="risk-form">
+          <div class="form-section">
+            <h3>Identification</h3>
+            <div class="field-row">
+              <label>Patient name
+                <input type="text" name="name" placeholder="e.g. Anita Sharma" value="Anita Sharma">
+              </label>
+              <label>Gender
+                <select name="gender">
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                </select>
+              </label>
+              <label>Age
+                <input type="number" name="age" min="1" max="120" value="52" required>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Vitals</h3>
+            <div class="field-row">
+              <label>BMI
+                <input type="number" step="0.1" name="bmi" min="10" max="60" value="27.4" required>
+              </label>
+              <label>Systolic BP <span class="unit">mmHg</span>
+                <input type="number" name="systolic_bp" min="70" max="250" value="132" required>
+              </label>
+              <label>Diastolic BP <span class="unit">mmHg</span>
+                <input type="number" name="diastolic_bp" min="40" max="150" value="85" required>
+              </label>
+            </div>
+            <div class="field-row">
+              <label>Glucose <span class="unit">mg/dL</span>
+                <input type="number" name="glucose" min="40" max="400" value="118" required>
+              </label>
+              <label>Cholesterol <span class="unit">mg/dL</span>
+                <input type="number" name="cholesterol" min="80" max="450" value="205" required>
+              </label>
+              <label>Heart rate <span class="unit">bpm</span>
+                <input type="number" name="heart_rate" min="30" max="180" value="78" required>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Lifestyle &amp; history</h3>
+            <div class="field-row">
+              <label>Physical activity
+                <select name="physical_activity">
+                  <option value="Low">Low</option>
+                  <option value="Moderate" selected>Moderate</option>
+                  <option value="High">High</option>
+                </select>
+              </label>
+              <label>Sleep <span class="unit">hrs/night</span>
+                <input type="number" step="0.1" name="sleep_hours" min="0" max="14" value="6.5" required>
+              </label>
+              <label>Stress level <span class="unit">1–10</span>
+                <input type="number" name="stress_level" min="1" max="10" value="6" required>
+              </label>
+            </div>
+            <div class="field-row toggles">
+              <label class="checkbox"><input type="checkbox" name="smoking"> Smoker</label>
+              <label class="checkbox"><input type="checkbox" name="alcohol_consumption"> Regular alcohol use</label>
+              <label class="checkbox"><input type="checkbox" name="family_history" checked> Family history of chronic disease</label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" id="submit-btn">Run risk analysis</button>
+        </form>
+
+        <div class="results-col">
+          <div class="card result-card" id="result-empty">
+            <p class="empty-hint">Results will appear here once you run an analysis.</p>
+          </div>
+
+          <div class="card result-card hidden" id="result-card">
+            <div class="gauge-row">
+              <div class="gauge" id="gauge">
+                <svg viewBox="0 0 140 140">
+                  <circle class="gauge-track" cx="70" cy="70" r="60"></circle>
+                  <circle class="gauge-fill" id="gauge-fill" cx="70" cy="70" r="60"></circle>
+                </svg>
+                <div class="gauge-center">
+                  <span class="gauge-score" id="gauge-score">--</span>
+                  <span class="gauge-label">/ 100</span>
+                </div>
+              </div>
+              <div class="gauge-meta">
+                <span class="risk-pill" id="risk-pill">—</span>
+                <p class="gauge-desc">Composite risk score, weighted from classifier probabilities across all vitals and lifestyle factors.</p>
+                <div class="proba-bars" id="proba-bars"></div>
+              </div>
+            </div>
+
+            <div class="sub-risks">
+              <div class="sub-risk">
+                <div class="sub-risk-top">
+                  <span>Diabetes risk</span>
+                  <span id="diabetes-value">--%</span>
+                </div>
+                <div class="sub-bar"><div class="sub-bar-fill" id="diabetes-bar"></div></div>
+              </div>
+              <div class="sub-risk">
+                <div class="sub-risk-top">
+                  <span>Heart disease risk</span>
+                  <span id="heart-value">--%</span>
+                </div>
+                <div class="sub-bar"><div class="sub-bar-fill" id="heart-bar"></div></div>
+              </div>
+            </div>
+
+            <div class="recommendations">
+              <h3>Recommendations</h3>
+              <ul id="recommendations-list"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: Records -->
+    <section class="view" id="view-records">
+      <header class="view-header">
+        <h1>Patient Records</h1>
+        <p>All assessments run in this session, stored locally in SQLite.</p>
+      </header>
+      <div class="card table-card">
+        <table id="records-table">
+          <thead>
+            <tr>
+              <th>Name</th><th>Age</th><th>Gender</th><th>BMI</th><th>BP</th>
+              <th>Glucose</th><th>Risk level</th><th>Score</th><th>Diabetes</th><th>Heart</th><th>Date</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="records-body"></tbody>
+        </table>
+        <p class="empty-hint" id="records-empty">No records yet. Run an assessment to see it listed here.</p>
+      </div>
+    </section>
+
+    <!-- VIEW: About -->
+    <section class="view" id="view-about">
+      <header class="view-header">
+        <h1>Model &amp; Methodology</h1>
+        <p>How Vitalis turns patient vitals into a risk profile.</p>
+      </header>
+      <div class="about-grid">
+        <div class="card about-card">
+          <h3>01 — Data</h3>
+          <p>Trained on 5,000 synthetic patient records with realistic correlations between age, BMI, blood pressure, glucose, cholesterol, and lifestyle factors. Generated for demonstration — not real patient data.</p>
+        </div>
+        <div class="card about-card">
+          <h3>02 — Risk level classifier</h3>
+          <p>A Random Forest classifier (300 trees) predicts Low / Medium / High overall risk from 14 engineered features, reaching 85% held-out accuracy.</p>
+        </div>
+        <div class="card about-card">
+          <h3>03 — Condition-specific models</h3>
+          <p>Two Gradient Boosting regressors estimate diabetes risk and cardiovascular risk independently, each scored 0–100%.</p>
+        </div>
+        <div class="card about-card">
+          <h3>04 — Recommendations engine</h3>
+          <p>A clinical rules layer converts out-of-range vitals into plain-language, prioritized next steps alongside the model's output.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Feature importance</h3>
+        <div id="importance-chart" class="importance-chart"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
